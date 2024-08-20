@@ -1,27 +1,37 @@
 provider "azurerm" {
-  features {}
+  features = {}
 }
 
-resource "azurerm_subnet" "example" {
+resource "azurerm_subnet" "subnet" {
   name                 = "or-pb-m3-stg-app-subnet"
-  resource_group_name  = "your-resource-group"  # Replace with your resource group name
+  resource_group_name  = azurerm_virtual_network.vnet.resource_group_name
   virtual_network_name = "hello-vnet"
   address_prefixes     = ["10.9.39.0/24"]
 
+  route_table_id = azurerm_route_table.rt.id
+}
+
+resource "azurerm_subnet_network_security_group_association" "subnet_nsg_assoc" {
+  subnet_id                 = azurerm_subnet.subnet.id
   network_security_group_id = azurerm_network_security_group.nsg.id
-  route_table_id            = azurerm_route_table.route_table.id
+}
+
+resource "azurerm_subnet_route_table_association" "subnet_rt_assoc" {
+  subnet_id      = azurerm_subnet.subnet.id
+  route_table_id = azurerm_route_table.rt.id
 }
 
 data "azurerm_network_security_group" "nsg" {
   name                = "or-pb-m3-stg-us-c-vnet-nsg"
-  resource_group_name = "your-resource-group"  # Replace with your resource group name
+  resource_group_name = "your_resource_group_name"
 }
 
-data "azurerm_route_table" "route_table" {
+data "azurerm_route_table" "rt" {
   name                = "np-or-pb-m3-stg-c-vnet"
-  resource_group_name = "your-resource-group"  # Replace with your resource group name
+  resource_group_name = "your_resource_group_name"
 }
 
-output "subnet_id" {
-  value = azurerm_subnet.example.id
+data "azurerm_virtual_network" "vnet" {
+  name                = "hello-vnet"
+  resource_group_name = "your_resource_group_name"
 }
