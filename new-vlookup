@@ -7,6 +7,10 @@ from openpyxl.styles import PatternFill
 data_df = pd.read_csv('data.csv')
 excel_df = pd.read_excel('All Subs Netguru Report.xlsx', sheet_name='Azure')
 
+# Print the columns to check their names
+print("Columns in data.csv:", data_df.columns)
+print("Columns in All Subs Netguru Report.xlsx:", excel_df.columns)
+
 # Rename columns if there are leading/trailing spaces or case differences
 data_df.columns = data_df.columns.str.strip()
 excel_df.columns = excel_df.columns.str.strip()
@@ -26,50 +30,37 @@ excel_df['Subscription ID'] = excel_df['Subscription ID'].str.lower()
 merged_df = pd.merge(excel_df, data_df[['Subscription ID', 'Compliance Status']], on='Subscription ID', how='left')
 
 # Create a new column with the desired date format and fill with 'Compliance Status'
-date_column_name = 'Status ' + datetime.today().strftime('%m-%d-%Y')
+date_column_name = 'Status ' + datetime.today().strftime('%m.%d.%Y')
 merged_df[date_column_name] = merged_df['Compliance Status']
 
-# Drop the extra 'Compliance Status' column used for merging
-merged_df = merged_df.drop(columns=['Compliance Status'])
+# Load the existing workbook and select the sheet
+wb = load_workbook('All Subs Netguru Report.xlsx')
+ws = wb['Azure']
 
-# Load the Excel workbook
-workbook = load_workbook('All Subs Netguru Report.xlsx')
-worksheet = workbook['Azure']
+# Define colors for highlighting
+green_fill = PatternFill(start_color="00FF00", end_color="00FF00", fill_type="solid")
+orange_fill = PatternFill(start_color="FFA500", end_color="FFA500", fill_type="solid")
+red_fill = PatternFill(start_color="FF0000", end_color="FF0000", fill_type="solid")
 
-# Define fill colors
-green_fill = PatternFill(start_color='00FF00', end_color='00FF00', fill_type='solid')
-orange_fill = PatternFill(start_color='FFA500', end_color='FFA500', fill_type='solid')
-red_fill = PatternFill(start_color='FF0000', end_color='FF0000', fill_type='solid')
+# Get the column letter for today's and yesterday's status columns
+today_column_letter = chr(65 + merged_df.columns.get_loc(date_column_name))  # Convert to Excel column letter
+yesterday_date = datetime.today().strftime('%m.%d.%Y')
+yesterday_column_name = 'Status ' + yesterday_date
 
-# Get the column index for the newly added column
-new_col_idx = worksheet.max_column
+if yesterday_column_name in merged_df.columns:
+    yesterday_column_letter = chr(65 + merged_df.columns.get_loc(yesterday_column_name))
 
-# Find the previous day's column (if it exists)
-prev_date_column = 'Status ' + (datetime.today() - pd.Timedelta(days=1)).strftime('%m-%d-%Y')
-prev_col_idx = None
+# Apply the highlighting based on compliance status and comparison with yesterday's data
+for row in range(2, ws.max_row + 1):  # Start from row 2 to skip the header
+    current_status = ws[f"{today_column_letter}{row}"].value
+    ws[f"{today_column_letter}{row}"].fill = green_fill if current_status == 'Compliant' else orange_fill
+    
+    if yesterday_column_name in merged_df.columns:
+        previous_status = ws[f"{yesterday_column_letter}{row}"].value
+        if previous_status != 'Non-Compliant' and current_status == 'Non-Compliant':
+            ws[f"{today_column_letter}{row}"].fill = red_fill
 
-for col in range(1, new_col_idx):
-    if worksheet.cell(row=1, column=col).value == prev_date_column:
-        prev_col_idx = col
-        break
+# Save the updated workbook
+wb.save('All Subs Netguru Report.xlsx')
 
-# Iterate through the rows and apply formatting based on compliance status
-for row_idx, row in enumerate(merged_df.itertuples(), start=2):
-    current_status = getattr(row, date_column_name.replace(' ', '_'))
-    cell = worksheet.cell(row=row_idx, column=new_col_idx)
-
-    if current_status == 'Compliant':
-        cell.fill = green_fill
-    elif current_status == 'Non-Compliant':
-        cell.fill = orange_fill
-
-    # Compare with previous day's data and highlight in red if needed
-    if prev_col_idx:
-        prev_status = worksheet.cell(row=row_idx, column=prev_col_idx).value
-        if prev_status != 'Non-Compliant' and current_status == 'Non-Compliant':
-            cell.fill = red_fill
-
-# Save the updated Excel file
-workbook.save('All Subs Netguru Report.xlsx')
-
-print(f"Data has been successfully updated with a new column '{date_column_name}' and formatted based on compliance status.")
+print(f"Data has been successfully updated with a new column '{date_column_name}' and highlighted based on the requirements.")
