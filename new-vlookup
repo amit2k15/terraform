@@ -36,29 +36,27 @@ merged_df[today_date] = merged_df['Compliance Status']
 # Drop the extra 'Compliance Status' column used for merging
 merged_df = merged_df.drop(columns=['Compliance Status'])
 
-# Save the updated dataframe to a new Excel file
-file_path = 'All Subs Netguru Report.xlsx'
-with pd.ExcelWriter(file_path, engine='openpyxl', mode='a', if_sheet_exists='replace') as writer:
+# Save the updated dataframe back to the Excel file using openpyxl
+with pd.ExcelWriter('All Subs Netguru Report.xlsx', engine='openpyxl', mode='a', if_sheet_exists='replace') as writer:
     merged_df.to_excel(writer, sheet_name='Azure', index=False)
 
-# Apply cell highlighting
-wb = load_workbook(file_path)
-ws = wb['Azure']
+# Load the workbook and the sheet
+workbook = load_workbook('All Subs Netguru Report.xlsx')
+sheet = workbook['Azure']
 
-# Define the fill styles for Compliant and Non-Compliant statuses
+# Define the fill colors
 green_fill = PatternFill(start_color='00FF00', end_color='00FF00', fill_type='solid')
 orange_fill = PatternFill(start_color='FFA500', end_color='FFA500', fill_type='solid')
 
-# Apply highlighting based on Compliance Status
-for row in ws.iter_rows(min_row=2, min_col=ws.min_column, max_col=ws.max_column):
-    for cell in row:
-        if cell.column_letter == ws.max_column:  # Only highlight cells in the new column
-            if cell.value == 'Compliant':
-                cell.fill = green_fill
-            elif cell.value == 'Non-Compliant':
-                cell.fill = orange_fill
+# Apply the fill color based on the compliance status
+for row in range(2, sheet.max_row + 1):
+    cell = sheet[f"{today_date}{row}"]
+    if cell.value == 'Compliant':
+        cell.fill = green_fill
+    elif cell.value == 'Non-Compliant':
+        cell.fill = orange_fill
 
-# Save the workbook with highlighted cells
-wb.save(file_path)
+# Save the changes to the workbook
+workbook.save('All Subs Netguru Report.xlsx')
 
-print(f"Data has been successfully updated with a new column '{today_date}' and cells have been highlighted.")
+print(f"Data has been successfully updated with a new column '{today_date}' and cells have been highlighted based on compliance status.")
