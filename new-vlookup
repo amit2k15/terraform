@@ -41,22 +41,22 @@ with pd.ExcelWriter('All Subs Netguru Report.xlsx', engine='openpyxl', mode='a',
     merged_df.to_excel(writer, sheet_name='Azure', index=False)
 
 # Load the workbook and select the sheet
-workbook = load_workbook('All Subs Netguru Report.xlsx')
-sheet = workbook['Azure']
+wb = load_workbook('All Subs Netguru Report.xlsx')
+ws = wb['Azure']
 
-# Define fill colors
+# Define fill colors for compliance status
 green_fill = PatternFill(start_color='00FF00', end_color='00FF00', fill_type='solid')
 orange_fill = PatternFill(start_color='FFA500', end_color='FFA500', fill_type='solid')
 
-# Apply the fill color based on the compliance status
-for row in range(2, sheet.max_row + 1):  # Start from 2 to skip the header
-    cell = sheet[f'{today_date}{row}']
-    if cell.value == 'Compliant':
-        cell.fill = green_fill
-    elif cell.value == 'Non-Compliant':
-        cell.fill = orange_fill
+# Iterate over the rows and apply the color based on the status
+for row in ws.iter_rows(min_row=2, max_row=ws.max_row, min_col=ws.min_column, max_col=ws.max_column):
+    compliance_status_cell = row[ws.max_column - 1]  # Assuming the status is in the last column
+    if compliance_status_cell.value == 'Compliant':
+        compliance_status_cell.fill = green_fill
+    elif compliance_status_cell.value == 'Non-Compliant':
+        compliance_status_cell.fill = orange_fill
 
-# Save the workbook
-workbook.save('All Subs Netguru Report.xlsx')
+# Save the changes to the Excel file
+wb.save('All Subs Netguru Report.xlsx')
 
-print(f"Data has been successfully updated with a new column '{today_date}', and cells have been highlighted based on compliance status.")
+print(f"Data has been successfully updated with a new column '{today_date}', and rows are highlighted based on compliance status.")
