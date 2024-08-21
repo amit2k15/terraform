@@ -1,12 +1,30 @@
 import pandas as pd
 from datetime import datetime
-from openpyxl.styles import Font, Color, PatternFill
+from openpyxl import load_workbook
+from openpyxl.styles import PatternFill
 
 # Load the CSV and Excel files
 data_df = pd.read_csv('data.csv')
 excel_df = pd.read_excel('All Subs Netguru Report.xlsx', sheet_name='Azure')
 
-# ... (rest of the code for processing data remains the same)
+# Print the columns to check their names
+print("Columns in data.csv:", data_df.columns)
+print("Columns in All Subs Netguru Report.xlsx:", excel_df.columns)
+
+# Rename columns if there are leading/trailing spaces or case differences
+data_df.columns = data_df.columns.str.strip()
+excel_df.columns = excel_df.columns.str.strip()
+
+# If the 'Subscription ID' column is named differently, rename it
+if 'subscription id' in data_df.columns.str.lower():
+    data_df.rename(columns={col: 'Subscription ID' for col in data_df.columns if col.lower() == 'subscription id'}, inplace=True)
+
+if 'subscription id' in excel_df.columns.str.lower():
+    excel_df.rename(columns={col: 'Subscription ID' for col in excel_df.columns if col.lower() == 'subscription id'}, inplace=True)
+
+# Ensure both dataframes are in the same case for comparison
+data_df['Subscription ID'] = data_df['Subscription ID'].str.lower()
+excel_df['Subscription ID'] = excel_df['Subscription ID'].str.lower()
 
 # Merge the dataframes on the 'Subscription ID' column
 merged_df = pd.merge(excel_df, data_df[['Subscription ID', 'Compliance Status']], on='Subscription ID', how='left')
@@ -18,29 +36,27 @@ merged_df[today_date] = merged_df['Compliance Status']
 # Drop the extra 'Compliance Status' column used for merging
 merged_df = merged_df.drop(columns=['Compliance Status'])
 
-# Define conditional formatting rules
-green_fill = PatternFill(start_color='FF90EE90', end_color='FF90EE90', fill_type='solid')
-orange_fill = PatternFill(start_color='FFFFC7CE', end_color='FFFFC7CE', fill_type='solid')
-
-compliance_rule = ('=($' + today_date + '="Compliant")')
-non_compliance_rule = ('=($' + today_date + '="Non-Compliant")')
-
-# Apply conditional formatting to the 'today_date' column
+# Save the updated dataframe back to the Excel file using openpyxl
 with pd.ExcelWriter('All Subs Netguru Report.xlsx', engine='openpyxl', mode='a', if_sheet_exists='replace') as writer:
     merged_df.to_excel(writer, sheet_name='Azure', index=False)
-    worksheet = writer.sheets['Azure']
 
-    # Create formatting objects
-    green_format = Font(color=Color(rgb='006100'))  # Dark green font for better contrast
-    green_format = green_format + green_fill
-    orange_format = Font(color=Color(rgb='9C0000'))  # Dark red font for better contrast
-    orange_format = orange_format + orange_fill
+# Load the workbook and select the sheet
+workbook = load_workbook('All Subs Netguru Report.xlsx')
+sheet = workbook['Azure']
 
-    # Apply conditional formatting rules
-    conditional_formatting = worksheet.conditional_formatting.add_conditional_formatting(
-        worksheet['A1:' + today_date + str(merged_df.shape[0])]
-    )
-    conditional_formatting.add_rule(compliance_rule, green_format)
-    conditional_formatting.add_rule(non_compliance_rule, orange_format)
+# Define fill colors
+green_fill = PatternFill(start_color='00FF00', end_color='00FF00', fill_type='solid')
+orange_fill = PatternFill(start_color='FFA500', end_color='FFA500', fill_type='solid')
 
-print(f"Data has been successfully updated with a new column '{today_date}' and conditional formatting applied.")
+# Apply the fill color based on the compliance status
+for row in range(2, sheet.max_row + 1):  # Start from 2 to skip the header
+    cell = sheet[f'{today_date}{row}']
+    if cell.value == 'Compliant':
+        cell.fill = green_fill
+    elif cell.value == 'Non-Compliant':
+        cell.fill = orange_fill
+
+# Save the workbook
+workbook.save('All Subs Netguru Report.xlsx')
+
+print(f"Data has been successfully updated with a new column '{today_date}', and cells have been highlighted based on compliance status.")
