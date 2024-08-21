@@ -34,8 +34,8 @@ merged_df[today_date] = merged_df['Compliance Status']
 # Drop the extra 'Compliance Status' column used for merging
 merged_df = merged_df.drop(columns=['Compliance Status'])
 
-# Save the updated dataframe back to the Excel file
-with pd.ExcelWriter('All Subs Netguru Report.xlsx', mode='a', if_sheet_exists='replace') as writer:
+# Save the updated dataframe back to the Excel file using openpyxl
+with pd.ExcelWriter('All Subs Netguru Report.xlsx', engine='openpyxl', mode='a', if_sheet_exists='replace') as writer:
     merged_df.to_excel(writer, sheet_name='Azure', index=False)
 
 print(f"Data has been successfully updated with a new column '{today_date}'.")
