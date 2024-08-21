@@ -5,6 +5,21 @@ from datetime import datetime
 data_df = pd.read_csv('data.csv')
 excel_df = pd.read_excel('All Subs Netguru Report.xlsx', sheet_name='Azure')
 
+# Print the columns to check their names
+print("Columns in data.csv:", data_df.columns)
+print("Columns in All Subs Netguru Report.xlsx:", excel_df.columns)
+
+# Rename columns if there are leading/trailing spaces or case differences
+data_df.columns = data_df.columns.str.strip()
+excel_df.columns = excel_df.columns.str.strip()
+
+# If the 'Subscription ID' column is named differently, rename it
+if 'subscription id' in data_df.columns.str.lower():
+    data_df.rename(columns={col: 'Subscription ID' for col in data_df.columns if col.lower() == 'subscription id'}, inplace=True)
+
+if 'subscription id' in excel_df.columns.str.lower():
+    excel_df.rename(columns={col: 'Subscription ID' for col in excel_df.columns if col.lower() == 'subscription id'}, inplace=True)
+
 # Ensure both dataframes are in the same case for comparison
 data_df['Subscription ID'] = data_df['Subscription ID'].str.lower()
 excel_df['Subscription ID'] = excel_df['Subscription ID'].str.lower()
