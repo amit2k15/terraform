@@ -7,27 +7,12 @@ from openpyxl.styles import PatternFill
 data_df = pd.read_csv('data.csv')
 excel_df = pd.read_excel('All Subs Netguru Report.xlsx', sheet_name='Azure')
 
-# Print the columns to check their names
-print("Columns in data.csv:", data_df.columns)
-print("Columns in All Subs Netguru Report.xlsx:", excel_df.columns)
+# ... (rest of the code for column name handling and merging)
 
-# Rename columns if there are leading/trailing spaces or case differences
-data_df.columns = data_df.columns.str.strip()
-excel_df.columns = excel_df.columns.str.strip()
-
-# If the 'Subscription ID' column is named differently, rename it
-if 'subscription id' in data_df.columns.str.lower():
-    data_df.rename(columns={col: 'Subscription ID' for col in data_df.columns if col.lower() == 'subscription id'}, inplace=True)
-
-if 'subscription id' in excel_df.columns.str.lower():
-    excel_df.rename(columns={col: 'Subscription ID' for col in excel_df.columns if col.lower() == 'subscription id'}, inplace=True)
-
-# Ensure both dataframes are in the same case for comparison
-data_df['Subscription ID'] = data_df['Subscription ID'].str.lower()
-excel_df['Subscription ID'] = excel_df['Subscription ID'].str.lower()
-
-# Merge the dataframes on the 'Subscription ID' column
-merged_df = pd.merge(excel_df, data_df[['Subscription ID', 'Compliance Status']], on='Subscription ID', how='left')
+# Ensure successful merge before proceeding
+if 'Subscription ID' not in merged_df.columns:
+    print("Error: 'Subscription ID' column not found in merged dataframe. Aborting.")
+    exit()
 
 # Create a new column with the desired date format and fill with 'Compliance Status'
 date_column_name = 'Status ' + datetime.today().strftime('%m.%d.%Y')
@@ -42,20 +27,31 @@ green_fill = PatternFill(start_color="00FF00", end_color="00FF00", fill_type="so
 orange_fill = PatternFill(start_color="FFA500", end_color="FFA500", fill_type="solid")
 red_fill = PatternFill(start_color="FF0000", end_color="FF0000", fill_type="solid")
 
-# Get the column letter for today's and yesterday's status columns
-today_column_letter = chr(65 + merged_df.columns.get_loc(date_column_name))  # Convert to Excel column letter
+# Get the column letter for today's status column (after successful merge)
+try:
+    today_column_letter = chr(65 + merged_df.columns.get_loc(date_column_name))
+except KeyError:
+    print("Error: Column named '{}' not found in merged dataframe. Skipping highlighting.".format(date_column_name))
+    today_column_letter = None  # Set to None to avoid errors during highlighting
+
+# Yesterday's logic (similar approach)
 yesterday_date = datetime.today().strftime('%m.%d.%Y')
 yesterday_column_name = 'Status ' + yesterday_date
 
 if yesterday_column_name in merged_df.columns:
-    yesterday_column_letter = chr(65 + merged_df.columns.get_loc(yesterday_column_name))
+    try:
+        yesterday_column_letter = chr(65 + merged_df.columns.get_loc(yesterday_column_name))
+    except KeyError:
+        print("Error: Column named '{}' not found in merged dataframe. Skipping highlighting for yesterday.".format(yesterday_column_name))
+        yesterday_column_letter = None
 
 # Apply the highlighting based on compliance status and comparison with yesterday's data
 for row in range(2, ws.max_row + 1):  # Start from row 2 to skip the header
-    current_status = ws[f"{today_column_letter}{row}"].value
-    ws[f"{today_column_letter}{row}"].fill = green_fill if current_status == 'Compliant' else orange_fill
-    
-    if yesterday_column_name in merged_df.columns:
+    if today_column_letter:  # Check if column exists before accessing
+        current_status = ws[f"{today_column_letter}{row}"].value
+        ws[f"{today_column_letter}{row}"].fill = green_fill if current_status == 'Compliant' else orange_fill
+
+    if yesterday_column_letter and yesterday_column_name in merged_df.columns:
         previous_status = ws[f"{yesterday_column_letter}{row}"].value
         if previous_status != 'Non-Compliant' and current_status == 'Non-Compliant':
             ws[f"{today_column_letter}{row}"].fill = red_fill
@@ -63,4 +59,4 @@ for row in range(2, ws.max_row + 1):  # Start from row 2 to skip the header
 # Save the updated workbook
 wb.save('All Subs Netguru Report.xlsx')
 
-print(f"Data has been successfully updated with a new column '{date_column_name}' and highlighted based on the requirements.")
+print(f"Data has been successfully updated with a new column '{date_column_name}' (if successful merge) and highlighted based on the requirements.")
