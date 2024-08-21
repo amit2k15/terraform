@@ -29,50 +29,36 @@ excel_df['Subscription ID'] = excel_df['Subscription ID'].str.lower()
 # Merge the dataframes on the 'Subscription ID' column
 merged_df = pd.merge(excel_df, data_df[['Subscription ID', 'Compliance Status']], on='Subscription ID', how='left')
 
-# Create a new column with the desired date format and fill with 'Compliance Status'
-date_column_name = 'Status ' + datetime.today().strftime('%m-%d-%Y')
-merged_df[date_column_name] = merged_df['Compliance Status']
+# Create a new column with today's date and fill with 'Compliance Status'
+today_date = datetime.today().strftime('%Y-%m-%d')
+merged_df[today_date] = merged_df['Compliance Status']
 
 # Drop the extra 'Compliance Status' column used for merging
 merged_df = merged_df.drop(columns=['Compliance Status'])
 
-# Save the updated dataframe back to the Excel file using openpyxl
-with pd.ExcelWriter('All Subs Netguru Report.xlsx', engine='openpyxl', mode='a', if_sheet_exists='replace') as writer:
+# Save the updated dataframe to a new Excel file
+file_path = 'All Subs Netguru Report.xlsx'
+with pd.ExcelWriter(file_path, engine='openpyxl', mode='a', if_sheet_exists='replace') as writer:
     merged_df.to_excel(writer, sheet_name='Azure', index=False)
 
-# Load the workbook and sheet to apply formatting
-wb = load_workbook('All Subs Netguru Report.xlsx')
+# Apply cell highlighting
+wb = load_workbook(file_path)
 ws = wb['Azure']
 
-# Define styles for highlighting
+# Define the fill styles for Compliant and Non-Compliant statuses
 green_fill = PatternFill(start_color='00FF00', end_color='00FF00', fill_type='solid')
 orange_fill = PatternFill(start_color='FFA500', end_color='FFA500', fill_type='solid')
-red_fill = PatternFill(start_color='FF0000', end_color='FF0000', fill_type='solid')
 
-# Highlighting based on Compliance Status
-for row in ws.iter_rows(min_row=2, min_col=1, max_col=ws.max_column):
+# Apply highlighting based on Compliance Status
+for row in ws.iter_rows(min_row=2, min_col=ws.min_column, max_col=ws.max_column):
     for cell in row:
-        if cell.column_letter == 'B':  # Assuming Compliance Status is in column B
+        if cell.column_letter == ws.max_column:  # Only highlight cells in the new column
             if cell.value == 'Compliant':
                 cell.fill = green_fill
             elif cell.value == 'Non-Compliant':
                 cell.fill = orange_fill
 
-# Compare today's data with yesterday's data
-today_column = ws[date_column_name]
-yesterday_date = (datetime.today() - pd.DateOffset(days=1)).strftime('%m-%d-%Y')
-yesterday_column_name = 'Status ' + yesterday_date
+# Save the workbook with highlighted cells
+wb.save(file_path)
 
-if yesterday_column_name in ws.columns:
-    for row in ws.iter_rows(min_row=2, min_col=1, max_col=ws.max_column):
-        for cell in row:
-            if cell.column_letter == today_column.column_letter:
-                # Find the corresponding cell in the yesterday's column
-                cell_yesterday = ws[f'{cell.column_letter}{cell.row}']
-                if cell_yesterday.value != 'Non-Compliant' and cell.value == 'Non-Compliant':
-                    cell.fill = red_fill
-
-# Save the workbook with the applied formatting
-wb.save('All Subs Netguru Report.xlsx')
-
-print(f"Data has been successfully updated and highlighted in the Excel file '{date_column_name}'.")
+print(f"Data has been successfully updated with a new column '{today_date}' and cells have been highlighted.")
