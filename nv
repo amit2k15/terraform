@@ -1,0 +1,73 @@
+import pandas as pd
+from datetime import datetime
+from openpyxl import load_workbook
+from openpyxl.styles import PatternFill
+
+# Load the CSV and Excel files
+data_df = pd.read_csv('data.csv')
+excel_df = pd.read_excel('All Subs Netguru Report.xlsx', sheet_name='Azure')
+
+# Print the columns to check their names
+print("Columns in data.csv:", data_df.columns)
+print("Columns in All Subs Netguru Report.xlsx:", excel_df.columns)
+
+# Rename columns if there are leading/trailing spaces or case differences
+data_df.columns = data_df.columns.str.strip()
+excel_df.columns = excel_df.columns.str.strip()
+
+# If the 'Subscription ID' column is named differently, rename it
+if 'subscription id' in data_df.columns.str.lower():
+    data_df.rename(columns={col: 'Subscription ID' for col in data_df.columns if col.lower() == 'subscription id'}, inplace=True)
+
+if 'subscription id' in excel_df.columns.str.lower():
+    excel_df.rename(columns={col: 'Subscription ID' for col in excel_df.columns if col.lower() == 'subscription id'}, inplace=True)
+
+# Ensure both dataframes are in the same case for comparison
+data_df['Subscription ID'] = data_df['Subscription ID'].str.lower()
+excel_df['Subscription ID'] = excel_df['Subscription ID'].str.lower()
+
+# Merge the dataframes on the 'Subscription ID' column
+merged_df = pd.merge(excel_df, data_df[['Subscription ID', 'Compliance Status']], on='Subscription ID', how='left')
+
+# Create a new column with today's date
+today_date = datetime.today().strftime('Status %m.%d.%Y')
+
+# Find the last column that starts with "Status"
+status_columns = [col for col in merged_df.columns if col.lower().startswith('status')]
+last_status_col_index = merged_df.columns.get_loc(status_columns[-1])
+
+# Insert the new column right after the last "Status" column
+cols = merged_df.columns.tolist()
+cols.insert(last_status_col_index + 1, today_date)
+merged_df = merged_df[cols]
+
+# Assign the 'Compliance Status' values to the new column
+merged_df[today_date] = merged_df['Compliance Status']
+
+# Drop the extra 'Compliance Status' column used for merging
+merged_df = merged_df.drop(columns=['Compliance Status'])
+
+# Save the updated dataframe back to the Excel file using openpyxl
+with pd.ExcelWriter('All Subs Netguru Report.xlsx', engine='openpyxl', mode='a', if_sheet_exists='replace') as writer:
+    merged_df.to_excel(writer, sheet_name='Azure', index=False)
+
+# Load the workbook and select the sheet
+wb = load_workbook('All Subs Netguru Report.xlsx')
+ws = wb['Azure']
+
+# Define fill colors for compliance status
+green_fill = PatternFill(start_color='00FF00', end_color='00FF00', fill_type='solid')
+orange_fill = PatternFill(start_color='FFA500', end_color='FFA500', fill_type='solid')
+
+# Iterate over the rows and apply the color based on the status
+for row in ws.iter_rows(min_row=2, max_row=ws.max_row, min_col=ws.min_column, max_col=ws.max_column):
+    compliance_status_cell = row[last_status_col_index + 1]  # Adjusted for the new position
+    if compliance_status_cell.value == 'Compliant':
+        compliance_status_cell.fill = green_fill
+    elif compliance_status_cell.value == 'Non-Compliant':
+        compliance_status_cell.fill = orange_fill
+
+# Save the changes to the Excel file
+wb.save('All Subs Netguru Report.xlsx')
+
+print(f"Data has been successfully updated with a new column '{today_date}', and rows are highlighted based on compliance status.")
