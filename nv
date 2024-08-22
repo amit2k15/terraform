@@ -1,5 +1,5 @@
 import pandas as pd
-from datetime import datetime
+from datetime import datetime, timedelta
 from openpyxl import load_workbook
 from openpyxl.styles import PatternFill
 
@@ -29,20 +29,15 @@ excel_df['Subscription ID'] = excel_df['Subscription ID'].str.lower()
 # Merge the dataframes on the 'Subscription ID' column
 merged_df = pd.merge(excel_df, data_df[['Subscription ID', 'Compliance Status']], on='Subscription ID', how='left')
 
-# Create a new column with today's date
+# Generate today's and yesterday's date in the specified format
 today_date = datetime.today().strftime('Status %m.%d.%Y')
+yesterday_date = (datetime.today() - timedelta(days=1)).strftime('Status %m.%d.%Y')
 
-# Find the last column that starts with "Status"
-status_columns = [col for col in merged_df.columns if col.lower().startswith('status')]
-last_status_col_index = merged_df.columns.get_loc(status_columns[-1])
+# Find the index of the column containing yesterday's date
+yesterday_column_index = merged_df.columns.get_loc(merged_df.columns[merged_df.columns.str.contains(yesterday_date)].tolist()[0])
 
-# Insert the new column right after the last "Status" column
-cols = merged_df.columns.tolist()
-cols.insert(last_status_col_index + 1, today_date)
-merged_df = merged_df[cols]
-
-# Assign the 'Compliance Status' values to the new column
-merged_df[today_date] = merged_df['Compliance Status']
+# Insert the new column after the column with yesterday's date
+merged_df.insert(yesterday_column_index + 1, today_date, merged_df['Compliance Status'])
 
 # Drop the extra 'Compliance Status' column used for merging
 merged_df = merged_df.drop(columns=['Compliance Status'])
@@ -61,7 +56,7 @@ orange_fill = PatternFill(start_color='FFA500', end_color='FFA500', fill_type='s
 
 # Iterate over the rows and apply the color based on the status
 for row in ws.iter_rows(min_row=2, max_row=ws.max_row, min_col=ws.min_column, max_col=ws.max_column):
-    compliance_status_cell = row[last_status_col_index + 1]  # Adjusted for the new position
+    compliance_status_cell = row[yesterday_column_index + 1]  # Adjusted to new column position
     if compliance_status_cell.value == 'Compliant':
         compliance_status_cell.fill = green_fill
     elif compliance_status_cell.value == 'Non-Compliant':
