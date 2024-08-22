@@ -1,5 +1,5 @@
 import pandas as pd
-from datetime import datetime
+from datetime import datetime, timedelta
 from openpyxl import load_workbook
 from openpyxl.styles import PatternFill
 
@@ -29,9 +29,15 @@ excel_df['Subscription ID'] = excel_df['Subscription ID'].str.lower()
 # Merge the dataframes on the 'Subscription ID' column
 merged_df = pd.merge(excel_df, data_df[['Subscription ID', 'Compliance Status']], on='Subscription ID', how='left')
 
-# Create a new column with today's date and fill with 'Compliance Status'
+# Generate today's and yesterday's date in the specified format
 today_date = datetime.today().strftime('Status %m.%d.%Y')
-merged_df[today_date] = merged_df['Compliance Status']
+yesterday_date = (datetime.today() - timedelta(days=1)).strftime('Status %m.%d.%Y')
+
+# Find the index of the column containing yesterday's date
+yesterday_column_index = merged_df.columns.get_loc(merged_df.columns[merged_df.columns.str.contains(yesterday_date)].tolist()[0])
+
+# Insert the new column after the column with yesterday's date
+merged_df.insert(yesterday_column_index + 1, today_date, merged_df['Compliance Status'])
 
 # Drop the extra 'Compliance Status' column used for merging
 merged_df = merged_df.drop(columns=['Compliance Status'])
@@ -47,16 +53,24 @@ ws = wb['Azure']
 # Define fill colors for compliance status
 green_fill = PatternFill(start_color='00FF00', end_color='00FF00', fill_type='solid')
 orange_fill = PatternFill(start_color='FFA500', end_color='FFA500', fill_type='solid')
+red_fill = PatternFill(start_color='FF0000', end_color='FF0000', fill_type='solid')
 
 # Iterate over the rows and apply the color based on the status
 for row in ws.iter_rows(min_row=2, max_row=ws.max_row, min_col=ws.min_column, max_col=ws.max_column):
-    compliance_status_cell = row[ws.max_column - 1]  # Assuming the status is in the last column
-    if compliance_status_cell.value == 'Compliant':
-        compliance_status_cell.fill = green_fill
-    elif compliance_status_cell.value == 'Non-Compliant':
-        compliance_status_cell.fill = orange_fill
+    yesterday_cell = row[yesterday_column_index]
+    today_cell = row[yesterday_column_index + 1]
+    
+    # Highlight the cell based on compliance status
+    if today_cell.value == 'Compliant':
+        today_cell.fill = green_fill
+    elif today_cell.value == 'Non-Compliant':
+        today_cell.fill = orange_fill
+    
+    # Compare with the previous day and highlight in red if needed
+    if yesterday_cell.value == 'Compliant' and today_cell.value == 'Non-Compliant':
+        today_cell.fill = red_fill
 
 # Save the changes to the Excel file
 wb.save('All Subs Netguru Report.xlsx')
 
-print(f"Data has been successfully updated with a new column '{today_date}', and rows are highlighted based on compliance status.")
+print(f"Data has been successfully updated with a new column '{today_date}', and rows are highlighted based on compliance status. Red highlights indicate a drop from 'Compliant' to 'Non-Compliant'.")
