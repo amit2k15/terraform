@@ -1,0 +1,33 @@
+provider "azurerm" {
+  features {}
+}
+
+resource "azurerm_virtual_network" "vnet" {
+  name                = "vnet-prod-home"
+  resource_group_name = "your_resource_group_name"  # Replace with your resource group name
+  location            = "your_location"  # Replace with your location
+  address_space       = ["10.241.44.0/22"]
+
+  # Existing subnets here (if any)
+}
+
+resource "azurerm_subnet" "azure_bastion_subnet" {
+  name                 = "AzureBastionSubnet"
+  resource_group_name  = azurerm_virtual_network.vnet.resource_group_name
+  virtual_network_name = azurerm_virtual_network.vnet.name
+  address_prefixes     = ["10.241.44.0/26"]
+}
+
+resource "azurerm_subnet" "vm_subnet" {
+  name                 = "Vm-Subnet-name"
+  resource_group_name  = azurerm_virtual_network.vnet.resource_group_name
+  virtual_network_name = azurerm_virtual_network.vnet.name
+  address_prefixes     = ["10.241.44.64/27"]
+}
+
+resource "azurerm_subnet" "aks_prod_carelink_subnet" {
+  name                 = "aks-prod-carelink-subnet"
+  resource_group_name  = azurerm_virtual_network.vnet.resource_group_name
+  virtual_network_name = azurerm_virtual_network.vnet.name
+  address_prefixes     = ["10.241.46.0/23"]
+}
