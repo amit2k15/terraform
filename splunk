@@ -1,0 +1,13 @@
+Dear Grafana Support Team,
+
+I hope this email finds you well.
+
+We are currently experiencing some challenges with our Splunk queries in Grafana. We have created a data source in Grafana for Splunk and attempted to build a dashboard using it. However, we have noticed that the following query does not produce any output through the data source created in Grafana, despite yielding results when run directly in the Splunk dashboard:
+
+[Insert complex query here]
+
+Interestingly, simpler queries seem to work perfectly and return results in Grafana, so the issue appears to be specific to more complex queries.
+
+Could you please assist us in understanding why this might be happening and how we can resolve it? Any guidance or suggestions you can provide would be greatly appreciated.
+
+Thank you for your attention to this matter. We look forward to your response.
