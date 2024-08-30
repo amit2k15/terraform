@@ -1,0 +1,11 @@
+Hi Karthik/Team,
+
+As per the scheduled change, we have successfully configured self-healing for the following services in the X application:
+
+Service A: As suggested, we have configured a self-healing action for Service A that checks and starts both Service A and its dependent service, Service B.
+
+Service B: We have also configured a self-healing action for Service B. If Service B is down, Zabbix will detect the issue and automatically start Service B.
+
+Please review the configuration and let us know if you require any modifications.
+
+Thank you very much, Manaranjan and Toshi, for your collaboration and support during the self-heal implementation and testing.
