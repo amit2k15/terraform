@@ -1,0 +1,11 @@
+Hi Andrew,
+
+I wanted to provide you with an update regarding the two incidents we received from the same user — one assigned to Linda and the other to me.
+
+The user was on PTO but we managed to have a discussion about their requirements. During the conversation, they shared a GitHub repository that seemed somewhat complex. Meanwhile, I checked for any existing repositories related to the same subscription in the Tech-Ops space but initially didn't find any. However, when I checked again today, I found a repository created by Linda.
+
+I considered using Linda's repository for deployment, but after discussing with her, she mentioned that she is still actively working on it and needs further clarity from the user. She intends to connect with the user soon to gather additional input.
+
+Once we have more information, we will decide on the best approach for deployment. This might involve combining both requests into a single deployment or creating separate branches to deploy each request individually.
+
+Please let me know if there are any additional details you need or if there's anything else I can do to assist.
