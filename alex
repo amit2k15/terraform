@@ -1,0 +1,64 @@
+provider "azurerm" {
+  features {}
+}
+
+resource "azurerm_virtual_network" "main" {
+  name                = "drl-dtp-dev-virtual-network"
+  location            = "<Azure_Region>" # e.g., "East US"
+  resource_group_name = "<Resource_Group_Name>" # e.g., "myResourceGroup"
+  address_space       = ["10.41.0.0/20"]
+
+  subnet {
+    name                                      = "drl-dtp-dev-snet-aks"
+    address_prefixes                          = ["10.41.0.0/24"]
+    private_endpoint_network_policies_enabled = false
+    service_endpoints = [
+      "Microsoft.AzureActiveDirectory",
+      "Microsoft.KeyVault",
+      "Microsoft.Web",
+      "Microsoft.Storage",
+      "Microsoft.ServiceBus",
+      "Microsoft.ContainerRegistry",
+    ]
+  }
+
+  subnet {
+    name                                      = "drl-dtp-dev-snet-app-gateway"
+    address_prefixes                          = ["10.41.1.0/24"]
+    private_endpoint_network_policies_enabled = false
+    service_endpoints = [
+      "Microsoft.AzureActiveDirectory",
+      "Microsoft.KeyVault",
+      "Microsoft.Web",
+      "Microsoft.Storage",
+      "Microsoft.ServiceBus",
+      "Microsoft.ContainerRegistry",
+    ]
+  }
+
+  subnet {
+    name                                      = "drl-dtp-dev-snet-dbx-public"
+    address_prefixes                          = ["10.41.2.0/25"]
+    private_endpoint_network_policies_enabled = false
+    service_endpoints = [
+      "Microsoft.AzureActiveDirectory",
+      "Microsoft.KeyVault",
+      "Microsoft.Web",
+      "Microsoft.Storage",
+      "Microsoft.ContainerRegistry",
+    ]
+    delegations {
+      name = "Microsoft.Databricks/workspaces"
+      service_delegation {
+        name = "Microsoft.Databricks/workspaces"
+        actions = [
+          "Microsoft.Network/virtualNetworks/subnets/join/action",
+          "Microsoft.Network/virtualNetworks/subnets/prepareNetworkPolicies/action",
+          "Microsoft.Network/virtualNetworks/subnets/unprepareNetworkPolicies/action",
+        ]
+      }
+    }
+  }
+
+  # Add additional subnets as per the structure in your images
+}
