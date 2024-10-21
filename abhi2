@@ -1,0 +1,60 @@
+Here's a draft email template that addresses the key points you want to convey:
+
+
+---
+
+Subject: Key Differences and Updates on ORX Zabbix vs ENT Zabbix
+
+Hi Abhishek,
+
+I hope this email finds you well.
+
+I wanted to provide an overview of the key differences between ENT Zabbix and ORX Zabbix, and outline the potential challenges and impacts should access to ORX Zabbix be revoked, as well as our ongoing efforts to optimize costs and improve the system.
+
+Key Differences:
+
+ENT Zabbix was implemented after ORX Zabbix, and as of today, it mainly focuses on availability monitoring, including ICMP, port, URL monitoring, and synthetic monitoring using VuGen, which Zabbix does not offer by default.
+
+On the other hand, ORX Zabbix provides a more comprehensive suite of monitoring capabilities, including:
+
+Agent-based and agentless monitoring (WMI, SNMP)
+
+Monitoring of ports, services, networks, databases (availability and performance)
+
+Log monitoring, JVM monitoring, API monitoring, and custom modules
+
+Monitoring of web URLs
+
+Additionally, ORX Zabbix has implemented self-healing for 9 applications (with 4 more in the pipeline), increasing application availability and reducing dependency on manual interventions.
+
+
+
+Current Challenges:
+
+If access to ORX Zabbix were revoked, the system would face several challenges:
+
+Loss of critical monitoring capabilities, including performance and log monitoring, self-healing, and custom modules that play a key role in maintaining high application availability.
+
+Potential increase in downtime for applications that rely on self-healing.
+
+Automated reporting and performance analysis across applications would be disrupted, affecting operational visibility.
+
+
+We have observed a few VITs on ORX Zabbix due to the pending migration from RHEL 7 to RHEL 8/9. This is already underway, but we are currently handling Zabbix agents for over 3,000 devices, making it a challenge to update the agent configurations due to changing IPs. As peak season is approaching, we aim to complete this migration after the busy period.
+
+
+Cost Reduction and Optimization Plan:
+
+To reduce storage utilization, we plan to implement monthly partitions for large Zabbix tables. This will allow us to keep only 3 months of historical data in the live database, while archiving older data (up to 1 year) for reporting purposes. This will significantly cut storage costs while maintaining reporting capabilities for the application teams.
+
+
+Please let me know if you need further details or if there's anything else you’d like to discuss.
+
+Best regards,
+Amit (Ben)
+
+
+---
+
+Let me know if you’d like any adjustments!
+
