@@ -1,0 +1,26 @@
+Here’s a professional email template for your request:
+
+
+---
+
+Subject: Update on Trigger Conditions for Service Failure and Self-Healing
+
+Hi Mano,
+
+As discussed, I have updated the trigger conditions as follows for service failure and self-healing:
+
+Minor Alert: Data will be polled every 1-minute interval and will trigger an alert if it fails consecutively for 5 minutes. A self-heal action will be initiated in this scenario.
+
+Major Alert: If the service fails to start in 3 attempts and remains down for 15 consecutive minutes, Zabbix will trigger a major alert and automatically create a war room for further investigation.
+
+
+Please let me know if you have any questions or need further adjustments.
+
+Best regards,
+Amit Kumar Nayak
+
+
+---
+
+You can adjust the wording as needed, but this should cover the key points.
+
