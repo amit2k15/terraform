@@ -1,0 +1,77 @@
+import pandas as pd
+from pyzabbix import ZabbixAPI
+import requests
+
+# Suppress SSL warnings if you're using self-signed certificates
+requests.packages.urllib3.disable_warnings(requests.packages.urllib3.exceptions.InsecureRequestWarning)
+
+# Zabbix API credentials
+ZABBIX_SERVER = "https://your_zabbix_url"
+ZABBIX_USER = "your_zabbix_user"
+ZABBIX_PASSWORD = "your_zabbix_password"
+
+# Connect to Zabbix API
+zapi = ZabbixAPI(ZABBIX_SERVER)
+zapi.session.verify = False  # Ignore SSL if needed
+zapi.login(ZABBIX_USER, ZABBIX_PASSWORD)
+
+# Load the Excel file
+excel_file = 'servers_list.xlsx'
+df = pd.read_excel(excel_file)
+
+# Add a new column to store the result of each host creation
+df['Result'] = ''
+
+# Loop through each row and add the host
+for index, row in df.iterrows():
+    host_name = row['hostname']
+    ip_address = row['IP']
+    ask_name = row['Ask-name']
+    description = row['oh730']
+
+    # Prepare host group and ICMP template ID
+    try:
+        # Get or create the host group
+        host_group = zapi.hostgroup.get(filter={"name": ask_name})
+        if not host_group:
+            # Create the host group if it does not exist
+            host_group = zapi.hostgroup.create(name=ask_name)
+            host_group_id = host_group['groupids'][0]
+        else:
+            host_group_id = host_group[0]['groupid']
+        
+        # Fetch ICMP template ID
+        icmp_template = zapi.template.get(filter={"host": "ICMP Template"})
+        if not icmp_template:
+            df.at[index, 'Result'] = 'ICMP Template not found'
+            continue
+        template_id = icmp_template[0]['templateid']
+
+        # Create the host
+        new_host = zapi.host.create({
+            "host": host_name,
+            "interfaces": [{
+                "type": 1,
+                "main": 1,
+                "useip": 1,
+                "ip": ip_address,
+                "dns": "",
+                "port": "10050"
+            }],
+            "groups": [{"groupid": host_group_id}],
+            "templates": [{"templateid": template_id}],
+            "tags": [{"tag": "APP", "value": ask_name}],
+            "description": description
+        })
+
+        # If host is created successfully
+        df.at[index, 'Result'] = 'Host created successfully'
+    
+    except Exception as e:
+        df.at[index, 'Result'] = f'Failed to create host: {str(e)}'
+
+# Save the updated Excel file with the results
+df.to_excel('servers_list_with_results.xlsx', index=False)
+
+# Logout from Zabbix API
+zapi.logout()
