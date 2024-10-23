@@ -24,3 +24,15 @@ Amit Kumar Nayak
 
 You can adjust the wording as needed, but this should cover the key points.
 
+Hi Mano,
+
+As discussed, with the peak season approaching, we are focused on delivering some high-priority work that needs to be completed before the season begins. According to the attached Excel sheet, we are required to implement self-healing for several services. This will take some time, as we will need to test these services in the lower environments first. Once testing is successfully completed, we will then plan for production deployment with a proper change request.
+
+After a random check of a few servers listed in the Excel sheet, I noticed that most of the services are currently in a disabled state. Therefore, we will need to obtain sign-off from the respective SLOs of the applications before enabling the services. Once that is done, we can proceed with implementing self-healing.
+
+Since peak season is around the corner, we have blackout days as indicated in the peak season calendar, during which no changes can be made. Therefore, we propose parking this project until after the peak season.
+
+In the meantime, if you would like, we can proceed with implementing self-healing for some independent priority single services from the list.
+
+Please let me know how you'd like to proceed.
+
