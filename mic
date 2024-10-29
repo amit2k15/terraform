@@ -1,0 +1,15 @@
+Subject: Update on Application Monitoring and Integration with OneView
+
+Hi Michael/Abhishek,
+
+I have cross-verified the application setup in Zabbix and confirmed that we are currently monitoring 24 servers for this application, covering basic infrastructure metrics only. These include CPU, memory, filesystem, system information, disk, disk IOPS, and services (for Windows servers).
+
+Alerts are enabled in Zabbix based on defined criteria for the OWCA application, and they are currently configured to trigger notifications to the specified distribution lists and via Interlink integration. However, I noticed that integration with the OneView portal has not been completed, which is why this application is not visible there.
+
+According to the OneView team’s SLA, I’ve enabled the integration from ORX Zabbix, and the application should appear in the OWCA portal within the next 24 hours. Additionally, this application monitoring is currently set up only on ORX Zabbix, not on Enterprise Zabbix.
+
+Please let me know if there are any further details needed.
+
+Best regards,
+Amit
+
