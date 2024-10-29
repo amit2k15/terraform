@@ -1,0 +1,74 @@
+from pyzabbix import ZabbixAPI
+import pandas as pd
+
+# Zabbix server details
+ZABBIX_SERVER = 'http://your_zabbix_server_url'
+USERNAME = 'your_zabbix_username'
+PASSWORD = 'your_zabbix_password'
+
+# Function to get the web scenarios for hosts in a specific host group
+def get_web_scenarios_by_hostgroup(hostgroup_name):
+    # Connect to Zabbix API
+    zapi = ZabbixAPI(ZABBIX_SERVER)
+    zapi.login(USERNAME, PASSWORD)
+    
+    # Fetch host group ID by name
+    hostgroup = zapi.hostgroup.get(filter={'name': hostgroup_name})
+    if not hostgroup:
+        print("Host group not found.")
+        return
+    hostgroup_id = hostgroup[0]['groupid']
+    
+    # Fetch hosts in the host group
+    hosts = zapi.host.get(groupids=hostgroup_id, output=['hostid', 'name'])
+    
+    # List to store all the details for each scenario
+    data = []
+
+    # Fetch web scenarios for each host
+    for host in hosts:
+        host_id = host['hostid']
+        host_name = host['name']
+        
+        # Fetch web scenarios for each host
+        web_scenarios = zapi.httptest.get(hostids=host_id, output=['name', 'delay'])
+        
+        for scenario in web_scenarios:
+            scenario_name = scenario['name']
+            update_interval = scenario['delay']
+            
+            # Fetch scenario steps for each web scenario
+            steps = zapi.httptest.get(hostids=host_id, httptestids=scenario['httptestid'], selectSteps='extend')
+            
+            for step in steps[0]['steps']:
+                step_name = step['name']
+                url = step['url']
+                post_type = step.get('posts', 'N/A')
+                raw_post = step.get('raw_post', 'N/A')
+                header_name = step.get('http_proxy', 'N/A')
+                header_value = step.get('http_proxy', 'N/A')
+                timeout = step['timeout']
+                required_string = step.get('required', 'N/A')
+                required_status_codes = step.get('status_codes', 'N/A')
+                
+                # Append the row to the data list
+                data.append([
+                    host_name, scenario_name, update_interval, step_name, url,
+                    post_type, raw_post, header_name, header_value, timeout,
+                    required_string, required_status_codes
+                ])
+
+    # Create a DataFrame and save it to an Excel file
+    df = pd.DataFrame(data, columns=[
+        'Hostname', 'Scenario Name', 'Update Interval', 'Step Name', 'URL',
+        'Post Type', 'Raw Post', 'Header Name', 'Header Value', 'Timeout',
+        'Required String', 'Required Status Codes'
+    ])
+    
+    # Save DataFrame to an Excel file
+    output_file = f"{hostgroup_name}_web_scenarios.xlsx"
+    df.to_excel(output_file, index=False)
+    print(f"Data has been written to {output_file}")
+
+# Replace 'YourHostGroupName' with the specific host group name you want to query
+get_web_scenarios_by_hostgroup('YourHostGroupName')
