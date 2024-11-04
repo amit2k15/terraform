@@ -1,0 +1,64 @@
+1) Zabbix Upgrade to Latest Version
+
+Led a comprehensive upgrade of Zabbix to the latest version, including a proof of concept in a lower environment.
+
+Established a high availability (HA) setup using three Zabbix nodes to improve system resilience.
+
+Implemented Zabbix database partitioning to manage large volumes of historical data more efficiently.
+
+Enhanced data retention capabilities, optimizing storage for long-term historical records.
+
+Improved data search accuracy and performance, making it easier to retrieve and analyze historical data.
+
+
+2) Grafana Dashboards
+
+Designed multiple Grafana dashboards tailored for different lines of business (LOBs) to ensure targeted monitoring.
+
+Developed dashboards to enhance internal visibility, making key metrics accessible to relevant stakeholders.
+
+Customized visualizations to highlight critical metrics, improving incident response times and decision-making.
+
+Implemented dynamic dashboard features for real-time data insights across departments.
+
+Created user-friendly, intuitive interfaces that allow teams to navigate and interpret data seamlessly.
+
+
+3) Azure Contributions
+
+Played a key role in managing day-to-day incidents on Azure, resolving 67% of tickets received in the team’s bucket.
+
+Utilized strong troubleshooting skills to address complex issues efficiently and minimize downtime.
+
+Contributed to infrastructure management with Terraform, streamlining deployment and configuration processes.
+
+Actively participated in vulnerability remediation, ensuring secure and compliant cloud environments.
+
+Developed expertise in incident response, enhancing the overall stability and security of Azure systems.
+
+
+4) Self-Healing Implementation
+
+Implemented self-healing capabilities across eight applications, enabling automatic recovery from common issues.
+
+Reduced human intervention, allowing application teams to resolve issues quickly without manual support.
+
+Collaborated with app teams to identify areas where self-healing could make the most impact.
+
+Saved time and resources by implementing self-healing scripts and processes tailored to specific application needs.
+
+Contributed to the organization’s shift toward more autonomous, resilient application management.
+
+
+5) Automation Initiatives
+
+Automated repetitive tasks and workflows, reducing operational toil and improving efficiency.
+
+Developed automated reporting solutions, delivering timely insights without manual data gathering.
+
+Created custom modules based on user requirements, enhancing functionality and streamlining processes.
+
+Collaborated with cross-functional teams to identify automation opportunities, tailoring solutions to their needs.
+
+Demonstrated measurable time savings and consistency improvements by automating job scheduling and execution.
+
