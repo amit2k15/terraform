@@ -1,0 +1,58 @@
+from pyzabbix import ZabbixAPI
+import openpyxl
+
+# Zabbix API credentials
+ZABBIX_SERVER = 'https://your_zabbix_server.com'
+ZABBIX_USER = 'your_zabbix_username'
+ZABBIX_PASSWORD = 'your_zabbix_password'
+
+# Host group to query
+host_group_name = 'YOUR_HOST_GROUP_NAME'
+
+# Connect to Zabbix API
+zapi = ZabbixAPI(ZABBIX_SERVER)
+zapi.login(ZABBIX_USER, ZABBIX_PASSWORD)
+
+# Fetch host group ID
+host_group = zapi.hostgroup.get(filter={'name': host_group_name})
+if not host_group:
+    print(f"Host group '{host_group_name}' not found.")
+    exit(1)
+
+host_group_id = host_group[0]['groupid']
+
+# Fetch hosts within the host group
+hosts = zapi.host.get(
+    groupids=host_group_id,
+    output=['host', 'name', 'status'],
+    selectInterfaces=['ip']
+)
+
+# Prepare data for Excel
+data = []
+for host in hosts:
+    hostname = host['name']
+    ip_address = host['interfaces'][0]['ip'] if host['interfaces'] else "N/A"
+    zabbix_agent_status = 'Enabled' if int(host['status']) == 0 else 'Disabled'
+    
+    # Check if host has SNMP interface
+    snmp_status = "SNMP Enabled" if any(
+        interface['type'] == '2' for interface in host['interfaces']
+    ) else "SNMP Disabled"
+    
+    data.append([hostname, ip_address, zabbix_agent_status, snmp_status])
+
+# Save data to Excel
+wb = openpyxl.Workbook()
+ws = wb.active
+ws.title = "Host Group Info"
+ws.append(["Hostname", "IP Address", "Zabbix Agent Status", "SNMP Status"])
+
+for row in data:
+    ws.append(row)
+
+# Save Excel file
+output_filename = f"{host_group_name}_host_info.xlsx"
+wb.save(output_filename)
+
+print(f"Data saved to {output_filename}")
