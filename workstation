@@ -1,0 +1,67 @@
+from pyzabbix import ZabbixAPI
+import openpyxl
+from openpyxl import Workbook
+
+# Zabbix server URL and credentials
+ZABBIX_SERVER = 'https://your_zabbix_server_url'
+USERNAME = 'your_username'
+PASSWORD = 'your_password'
+
+# List of group names to filter
+GROUP_NAMES = ['group1', 'group2']  # Add the names of groups you want to filter by
+
+def get_host_data(zapi, group_names):
+    # Get host groups
+    host_groups = zapi.hostgroup.get(filter={'name': group_names})
+    group_ids = [group['groupid'] for group in host_groups]
+
+    # Retrieve host data for specified groups
+    hosts = zapi.host.get(
+        groupids=group_ids,
+        output=['host', 'status'],
+        selectInterfaces=['ip'],
+        selectGroups=['name']
+    )
+
+    host_data = []
+    for host in hosts:
+        hostname = host['host']
+        host_status = 'Enabled' if host['status'] == '0' else 'Disabled'
+        ip_address = host['interfaces'][0]['ip'] if host['interfaces'] else 'N/A'
+        host_group_name = host['groups'][0]['name'] if host['groups'] else 'N/A'
+
+        # Get Zabbix agent status (check if Zabbix agent item exists and is running)
+        items = zapi.item.get(hostids=host['hostid'], search={'key_': 'agent.ping'}, output=['state'])
+        agent_status = 'Running' if items and items[0]['state'] == '0' else 'Failed'
+
+        host_data.append((hostname, host_group_name, ip_address, host_status, agent_status))
+
+    return host_data
+
+def save_to_excel(data, filename='host_data.xlsx'):
+    # Create a workbook and add data to it
+    workbook = Workbook()
+    sheet = workbook.active
+    sheet.title = 'Host Data'
+    sheet.append(['Host Name', 'Host Group Name', 'IP Address', 'Host Status', 'Agent Status'])
+
+    for row in data:
+        sheet.append(row)
+
+    workbook.save(filename)
+    print(f'Data saved to {filename}')
+
+def main():
+    # Connect to Zabbix API
+    zapi = ZabbixAPI(ZABBIX_SERVER)
+    zapi.login(USERNAME, PASSWORD)
+
+    try:
+        # Fetch data and save to Excel
+        data = get_host_data(zapi, GROUP_NAMES)
+        save_to_excel(data)
+    finally:
+        zapi.logout()
+
+if __name__ == '__main__':
+    main()
