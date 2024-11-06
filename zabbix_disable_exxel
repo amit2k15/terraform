@@ -1,0 +1,54 @@
+from pyzabbix import ZabbixAPI
+import pandas as pd
+
+# Zabbix API credentials
+ZABBIX_SERVER = 'http://your_zabbix_server_url'
+USERNAME = 'your_username'
+PASSWORD = 'your_password'
+
+# Input Excel file
+input_file = 'servers.xlsx'
+output_file = 'servers_updated.xlsx'
+
+# Connect to Zabbix API
+zapi = ZabbixAPI(ZABBIX_SERVER)
+zapi.login(USERNAME, PASSWORD)
+
+# Read the Excel file
+df = pd.read_excel(input_file)
+
+# Ensure 'host' column exists
+if 'host' not in df.columns:
+    raise ValueError("The Excel sheet must contain a 'host' column.")
+
+# Create a new column 'status' for the results
+df['status'] = ''
+
+# Iterate through each host in the 'host' column
+for index, row in df.iterrows():
+    host_name = row['host']
+    try:
+        # Get host details by name
+        host = zapi.host.get(filter={'host': host_name})
+        
+        if not host:
+            df.at[index, 'status'] = 'Failed (Host not found)'
+            continue
+        
+        host_id = host[0]['hostid']
+        description = host[0]['description']
+
+        # Check if the host is already disabled
+        if host[0]['status'] == '1':
+            df.at[index, 'status'] = 'Already Disabled'
+        else:
+            # Disable the host (status=1) and update description to include "INC"
+            zapi.host.update(hostid=host_id, status=1, description=description + ' INC')
+            df.at[index, 'status'] = 'Disabled'
+    except Exception as e:
+        df.at[index, 'status'] = f'Failed ({str(e)})'
+
+# Save the updated DataFrame to a new Excel file
+df.to_excel(output_file, index=False)
+
+print("Script executed successfully. Output saved to", output_file)
