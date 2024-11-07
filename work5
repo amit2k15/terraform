@@ -1,0 +1,63 @@
+from pyzabbix import ZabbixAPI
+import pandas as pd
+
+# Zabbix server credentials
+ZABBIX_SERVER = 'https://your_zabbix_server_url'
+USERNAME = 'your_username'
+PASSWORD = 'your_password'
+
+# Connect to the Zabbix API
+zapi = ZabbixAPI(ZABBIX_SERVER)
+zapi.login(USERNAME, PASSWORD)
+
+# Filter for host groups containing "workstation_"
+host_group_filter = "workstation_"
+
+# Fetch hosts with details
+hosts = zapi.host.get(
+    output=["host", "name", "status"],
+    selectGroups=["name"],
+    selectInterfaces=["ip"],
+    selectItems=["key_", "lastvalue"]
+)
+
+# Data structure for storing output
+data = []
+
+for host in hosts:
+    # Get basic host details
+    host_name = host["name"]
+    host_status = "Enabled" if host["status"] == "0" else "Disabled"
+    ip_address = host["interfaces"][0]["ip"] if host["interfaces"] else "N/A"
+    
+    # Filter host groups to include only those containing "workstation_"
+    host_groups = [group["name"] for group in host["groups"] if host_group_filter.lower() in group["name"].lower()]
+    
+    # Skip if no matching host groups
+    if not host_groups:
+        continue
+    
+    # Determine Zabbix agent status using the agent.ping item
+    agent_status = "Unknown"
+    for item in host["items"]:
+        if item["key_"] == "agent.ping":
+            agent_status = "Running" if item["lastvalue"] == "1" else "Failed"
+            break
+
+    # Add host data to the list
+    data.append({
+        "Host Name": host_name,
+        "Host Group": ", ".join(host_groups),
+        "IP Address": ip_address,
+        "Host Status": host_status,
+        "Zabbix Agent Status": agent_status
+    })
+
+# Convert data to DataFrame and export to Excel
+df = pd.DataFrame(data)
+df.to_excel("zabbix_workstation_hosts.xlsx", index=False)
+
+print("Data has been saved to zabbix_workstation_hosts.xlsx")
+
+# Logout from Zabbix API
+zapi.user.logout()
