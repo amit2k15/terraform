@@ -1,0 +1,65 @@
+from pyzabbix import ZabbixAPI
+import pandas as pd
+
+# Zabbix server credentials
+ZABBIX_SERVER = 'https://your_zabbix_server_url'
+USERNAME = 'your_username'
+PASSWORD = 'your_password'
+
+# Connect to the Zabbix API
+zapi = ZabbixAPI(ZABBIX_SERVER)
+zapi.login(USERNAME, PASSWORD)
+
+# Host group filter
+host_group_filter = "workstation_"
+
+# Fetch hosts in host groups containing "workstation_"
+hosts = zapi.host.get(
+    output=["host", "name", "status"],
+    selectGroups=["name"],
+    selectInterfaces=["ip"],
+    selectTags=["tag", "value"],
+    selectItems=["key_", "lastvalue"],
+    filter={"status": "0"}  # Filter for enabled hosts only, optional
+)
+
+data = []
+
+# Process each host
+for host in hosts:
+    host_name = host["name"]
+    host_status = "Enabled" if host["status"] == "0" else "Disabled"
+    ip = host["interfaces"][0]["ip"] if host["interfaces"] else "N/A"
+    
+    # Get host group names that match the filter
+    host_groups = [group["name"] for group in host["groups"] if host_group_filter in group["name"]]
+    
+    # Get specific tags by their names
+    site_tag = next((tag["value"] for tag in host["tags"] if tag["tag"] == "Site"), None)
+    category_tag = next((tag["value"] for tag in host["tags"] if tag["tag"] == "Category"), None)
+    
+    # Check Zabbix agent status
+    agent_status = "Unknown"
+    for item in host["items"]:
+        if item["key_"] == "agent.ping":
+            agent_status = "Running" if item["lastvalue"] == "1" else "Failed"
+
+    # Append host data
+    data.append({
+        "Host Name": host_name,
+        "Host Group": ", ".join(host_groups),
+        "IP Address": ip,
+        "Host Status": host_status,
+        "Site": site_tag,
+        "Category": category_tag,
+        "Zabbix Agent Status": agent_status
+    })
+
+# Create a DataFrame and save to Excel
+df = pd.DataFrame(data)
+df.to_excel("zabbix_hosts_data.xlsx", index=False)
+
+print("Data has been saved to zabbix_hosts_data.xlsx")
+
+# Logout from the Zabbix API
+zapi.user.logout()
