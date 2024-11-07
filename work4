@@ -1,0 +1,66 @@
+from pyzabbix import ZabbixAPI
+import pandas as pd
+
+# Zabbix server credentials
+ZABBIX_SERVER = 'https://your_zabbix_server_url'
+USERNAME = 'your_username'
+PASSWORD = 'your_password'
+
+# Connect to the Zabbix API
+zapi = ZabbixAPI(ZABBIX_SERVER)
+zapi.login(USERNAME, PASSWORD)
+
+# Filter for host groups containing "workstation_"
+host_group_filter = "workstation_"
+
+# Fetch hosts with details
+hosts = zapi.host.get(
+    output=["host", "name", "status"],
+    selectGroups=["name"],
+    selectInterfaces=["ip"],
+    selectTags=["tag", "value"],
+    selectItems=["key_", "lastvalue"]
+)
+
+# Data structure for storing output
+data = []
+
+for host in hosts:
+    # Host information
+    host_name = host["name"]
+    host_status = "Enabled" if host["status"] == "0" else "Disabled"
+    ip_address = host["interfaces"][0]["ip"] if host["interfaces"] else "N/A"
+    
+    # Filter host groups by "workstation_"
+    host_groups = [group["name"] for group in host["groups"] if host_group_filter in group["name"]]
+    
+    # Get specific tags (Site and Category)
+    tag_name1 = next((tag["value"] for tag in host["tags"] if tag["tag"] == "Site"), None)
+    tag_name2 = next((tag["value"] for tag in host["tags"] if tag["tag"] == "Category"), None)
+    
+    # Determine Zabbix agent status
+    agent_status = "Unknown"
+    for item in host["items"]:
+        if item["key_"] == "agent.ping":
+            agent_status = "Running" if item["lastvalue"] == "1" else "Failed"
+            break
+
+    # Add host data to list
+    data.append({
+        "Host Name": host_name,
+        "Host Group": ", ".join(host_groups),
+        "IP Address": ip_address,
+        "Host Status": host_status,
+        "Tag Name1 (Site)": tag_name1,
+        "Tag Name2 (Category)": tag_name2,
+        "Zabbix Agent Status": agent_status
+    })
+
+# Convert data to DataFrame and export to Excel
+df = pd.DataFrame(data)
+df.to_excel("zabbix_hosts_data.xlsx", index=False)
+
+print("Data has been saved to zabbix_hosts_data.xlsx")
+
+# Logout from Zabbix API
+zapi.user.logout()
