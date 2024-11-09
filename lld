@@ -1,0 +1,21 @@
+Yes, Zabbix can automatically disable low-level discovery (LLD) discovered items if they are no longer discoverable. This behavior depends on the settings within the discovery rule and the item's status in the monitored environment.
+
+Here's how it typically works:
+
+1. Discovery Rule Interval: Zabbix periodically runs LLD rules based on the specified interval. If a previously discovered item (like a filesystem, network interface, or volume) is no longer detected during these checks, Zabbix marks it as "not discoverable."
+
+
+2. Item State: When an item is "not discoverable," Zabbix can either:
+
+Disable the item: This setting can be configured in the LLD rule options, making it so that undetected items are disabled rather than deleted.
+
+Delete the item: Alternatively, you can configure Zabbix to remove items that are no longer discoverable, freeing up database resources.
+
+
+
+3. Manual Overrides: If items are manually enabled or disabled, Zabbix does not override this manually set status on subsequent discovery runs. It respects the manual configuration unless changed back to automatic.
+
+
+
+So, in summary, Zabbix does handle non-discoverable items according to your configuration, either by disabling or deleting them, ensuring resources are only allocated to items actively being monitored.
+
