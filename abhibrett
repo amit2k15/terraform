@@ -1,0 +1,25 @@
+Subject: Incident Analysis on Volume Monitoring Issue
+
+Hi Abhishek,
+
+On October 28th, we received an incident (INC) from Brett, stating they had an issue with one of the volumes on their server. He mentioned that no alerts were triggered by Zabbix for this volume and found that it was in a disabled state.
+
+Upon investigation, I verified that none of the volumes were in a disabled state on our end, and I updated the incident accordingly before closing it. Following this, I had a discussion with Brett to obtain details about the specific volume for which alerts were not received. After further verification, I found that an alert had indeed been triggered for this volume on October 25th, exactly one week before Brett reported the issue.
+
+Based on my analysis:
+
+1. The Unix server in question is being monitored via SNMP, and we have an automated discovery process in Zabbix that identifies volumes and filesystems at regular intervals.
+
+
+2. I reviewed the audit logs and found no entries indicating any manual enable/disable actions for volumes on this server.
+
+
+3. I also checked the alert history over the last 6 months, which confirms that alerts have been consistently triggering for volumes on this server.
+
+
+
+Please find the attached artifacts for your reference. Let me know if you need further clarification.
+
+Best regards,
+Amit
+
