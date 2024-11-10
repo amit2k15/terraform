@@ -1,0 +1,12 @@
+Hi Abhishek,
+
+I’ve cross-verified the four high vulnerabilities you mentioned. Here’s a summary of my findings:
+
+1. Pending Decommission: I confirmed that one of the vulnerabilities is present on a server for which I submitted a decommission request last week. The request is still pending, but I expect it to be cleared from the portal shortly.
+
+
+2. Certificate Expiry: The remaining three vulnerabilities are flagged due to certificate expiry alerts on the security platform. However, these alerts appear to be incorrect, as all certificates were renewed recently, with expiry dates extending until 2025.
+
+
+
+Please let me know if further clarification is needed.
