@@ -1,0 +1,33 @@
+Hi Madhavendra,
+
+Thank you for the productive discussion on ORX Zabbix. Here’s a summary of the key points we covered:
+
+1. Current ORX Zabbix Setup: We currently operate three Zabbix instances—Test, Stage, and Production, all configured with High Availability (HA).
+
+
+2. Current Services Provided by ORX Zabbix: We discussed the full end-to-end monitoring capabilities offered by Zabbix, covering various monitoring needs across our environment.
+
+
+3. Network Device Monitoring: We reviewed the types of network devices being monitored, as well as the total number currently under monitoring.
+
+
+4. Proxies Deployed: We talked about the proxies deployed for ORX Zabbix, including those located outside the Optum network.
+
+
+5. Self-Healing Implementations: As of now, we have self-healing implemented on eight applications, with five more in the pipeline.
+
+
+6. Automation in ORX Zabbix: We discussed the automation initiatives that have been implemented within ORX Zabbix to enhance efficiency.
+
+
+7. Zabbix Access for Application Teams: We’ve granted Zabbix console access directly to application teams in a shared environment specific to the applications they own.
+
+
+8. Alerting Mechanism: We reviewed the current alerting mechanisms in place for ORX Zabbix.
+
+
+9. Third-Party Tool Integrations: We discussed the integrations with third-party tools, including Interlink and OneView, that are linked to Zabbix.
+
+
+
+Please let me know if there’s anything else we need to clarify or any further action items to address.
