@@ -1,0 +1,27 @@
+Here’s a draft for your email reply to Darren:
+
+
+---
+
+Subject: Follow-up on X Server Monitoring Configuration
+
+Hi Darren,
+
+I hope you're doing well.
+
+Thank you for your email. I’ve reviewed the details you provided, and as you mentioned, the X server is an ESXi machine. However, in Zabbix, I can see that the server is currently onboarded as a Linux server.
+
+At present, we are capturing data using SNMP-based monitoring, which gathers metrics based on the Linux kernel from the bare metal server, rather than at the ESXi level. As a result, we’re not capturing the ESXi-specific metrics that you’re likely looking for.
+
+I would recommend performing a validation to ensure that the server is properly configured. We should enable ESXi-level monitoring in Zabbix to capture the relevant ESXi metrics.
+
+Please let me know if you need any assistance with this validation or configuration.
+
+Best regards,
+[Your Name]
+
+
+---
+
+Feel free to adjust any details or sign-off as needed!
+
