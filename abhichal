@@ -1,0 +1,47 @@
+Subject: Discussion on Action Items and Challenges for Automated Health Check
+
+Dear Abhishek,
+
+I hope this email finds you well. Below are the details of the automated health check tool we developed, along with the associated challenges and proposed solutions if the tool is handed over to the enterprise team:
+
+1. Automated Health Check Tool
+
+Description:
+We developed a Python script that leverages the Zabbix API to fetch data from the Zabbix production instance. This script automates health check reporting twice daily.
+
+Challenges:
+
+a) Access Removal Impact:
+
+If access to the Zabbix production instance is revoked, it will be challenging to set up and manage the cron job for running the script. Troubleshooting and module management will also become impractical.
+
+
+b) Server Onboarding Dependencies:
+
+All OWCA servers (test, dev, stage, and prod) are hosted outside the Optum data center (DC) but onboarded to the ORX prod Zabbix instance.
+
+Custom templates and scripts were developed specifically for OWCA servers. Without access to the production Zabbix instance, managing and maintaining these applications will be difficult.
+
+
+Proposed Solutions:
+
+1. Access Requirements:
+
+We require super admin access to the Zabbix production instance to effectively manage, maintain, and troubleshoot the application.
+
+Additionally, proxy backend access is essential for further development and integration.
+
+
+
+2. Transition Support:
+
+A detailed handover document and training session can be arranged to ensure a smooth transition of responsibilities.
+
+
+
+
+Let me know your thoughts or if you’d like to discuss this further in detail.
+
+Best regards,
+Amit Kumar Nayak
+
